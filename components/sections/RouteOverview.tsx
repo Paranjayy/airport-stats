@@ -1,202 +1,180 @@
 "use client";
 
-import { useState, useMemo } from "react";
+const ROUTES = [
+  {
+    from: "DEL",
+    to: "BOM",
+    fromCity: "New Delhi",
+    toCity: "Mumbai",
+    distance: 1150,
+    carriers: "IndiGo, Air India, Vistara, SpiceJet",
+    frequency: "300+/week",
+  },
+  {
+    from: "DEL",
+    to: "BLR",
+    fromCity: "New Delhi",
+    toCity: "Bengaluru",
+    distance: 1740,
+    carriers: "IndiGo, Air India, Vistara, Akasa",
+    frequency: "200+/week",
+  },
+  {
+    from: "BOM",
+    to: "BLR",
+    fromCity: "Mumbai",
+    toCity: "Bengaluru",
+    distance: 840,
+    carriers: "IndiGo, Air India, Vistara, Akasa",
+    frequency: "200+/week",
+  },
+  {
+    from: "DEL",
+    to: "HYD",
+    fromCity: "New Delhi",
+    toCity: "Hyderabad",
+    distance: 1260,
+    carriers: "IndiGo, Air India, Vistara, Akasa",
+    frequency: "180+/week",
+  },
+  {
+    from: "BOM",
+    to: "HYD",
+    fromCity: "Mumbai",
+    toCity: "Hyderabad",
+    distance: 710,
+    carriers: "IndiGo, Air India, Vistara, Akasa",
+    frequency: "150+/week",
+  },
+  {
+    from: "DEL",
+    to: "MAA",
+    fromCity: "New Delhi",
+    toCity: "Chennai",
+    distance: 1760,
+    carriers: "IndiGo, Air India, SpiceJet",
+    frequency: "150+/week",
+  },
+  {
+    from: "BOM",
+    to: "MAA",
+    fromCity: "Mumbai",
+    toCity: "Chennai",
+    distance: 1030,
+    carriers: "IndiGo, Air India, Vistara, SpiceJet",
+    frequency: "120+/week",
+  },
+  {
+    from: "DEL",
+    to: "CCU",
+    fromCity: "New Delhi",
+    toCity: "Kolkata",
+    distance: 1300,
+    carriers: "IndiGo, Air India, Vistara",
+    frequency: "120+/week",
+  },
+  {
+    from: "BOM",
+    to: "CCU",
+    fromCity: "Mumbai",
+    toCity: "Kolkata",
+    distance: 1660,
+    carriers: "IndiGo, Air India, Vistara",
+    frequency: "80+/week",
+  },
+  {
+    from: "BLR",
+    to: "HYD",
+    fromCity: "Bengaluru",
+    toCity: "Hyderabad",
+    distance: 500,
+    carriers: "IndiGo, Air India, Akasa",
+    frequency: "100+/week",
+  },
+  {
+    from: "DEL",
+    to: "JAI",
+    fromCity: "New Delhi",
+    toCity: "Jaipur",
+    distance: 470,
+    carriers: "IndiGo, Air India, SpiceJet",
+    frequency: "100+/week",
+  },
+  {
+    from: "BOM",
+    to: "AMD",
+    fromCity: "Mumbai",
+    toCity: "Ahmedabad",
+    distance: 520,
+    carriers: "IndiGo, Air India, Akasa",
+    frequency: "80+/week",
+  },
+  {
+    from: "DEL",
+    to: "AMD",
+    fromCity: "New Delhi",
+    toCity: "Ahmedabad",
+    distance: 930,
+    carriers: "IndiGo, Air India, Vistara",
+    frequency: "80+/week",
+  },
+  {
+    from: "BLR",
+    to: "MAA",
+    fromCity: "Bengaluru",
+    toCity: "Chennai",
+    distance: 275,
+    carriers: "IndiGo, Air India, Akasa",
+    frequency: "80+/week",
+  },
+  {
+    from: "DEL",
+    to: "COK",
+    fromCity: "New Delhi",
+    toCity: "Kochi",
+    distance: 2050,
+    carriers: "IndiGo, Air India, Vistara",
+    frequency: "70+/week",
+  },
+];
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                               */
-/* ------------------------------------------------------------------ */
-
-interface RouteRow {
-  from: string;
-  to: string;
-  distance: number;
-  carriers: string;
-  frequency: string;
-}
-
-interface AirportRow {
-  iata: string;
-  name: string;
-  city: string;
-  state: string;
-  type: string;
-  passengers: number;
-  cargo: number;
-  movements: number;
-  domestic: number;
-  international: number;
-}
-
-interface RouteOverviewProps {
-  routes: RouteRow[];
-  airports: AirportRow[];
-}
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                             */
-/* ------------------------------------------------------------------ */
-
-function parseFrequency(freq: string): number {
-  const match = freq.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
-}
-
-function AirportDot({ iata, airports }: { iata: string; airports: AirportRow[] }) {
-  const airport = airports.find((a) => a.iata === iata);
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className="font-mono text-sm font-medium text-ink">{iata}</span>
-      {airport && (
-        <span className="text-xs text-muted hidden sm:inline">
-          {airport.city}
-        </span>
-      )}
-    </span>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Route card                                                          */
-/* ------------------------------------------------------------------ */
-
-function RouteCard({
-  route,
-  airports,
-  rank,
-  maxFreq,
-}: {
-  route: RouteRow;
-  airports: AirportRow[];
-  rank: number;
-  maxFreq: number;
-}) {
-  const freq = parseFrequency(route.frequency);
-  const pct = maxFreq > 0 ? (freq / maxFreq) * 100 : 0;
-
-  return (
-    <div className="flex items-center gap-4 py-3 border-b border-black/[.04] last:border-b-0">
-      {/* Rank */}
-      <div className="w-6 text-center text-xs font-mono text-muted">
-        {rank}
-      </div>
-
-      {/* Route pair */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <AirportDot iata={route.from} airports={airports} />
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            className="text-muted/40 flex-shrink-0"
-          >
-            <path
-              d="M3 8h10M9 4l4 4-4 4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
-          <AirportDot iata={route.to} airports={airports} />
-        </div>
-        <div className="mt-1 flex items-center gap-3 text-xs text-muted">
-          <span>{route.distance.toLocaleString()} km</span>
-          <span className="w-px h-3 bg-black/8" />
-          <span className="truncate">{route.carriers}</span>
-        </div>
-      </div>
-
-      {/* Frequency bar */}
-      <div className="w-32 hidden md:block">
-        <div className="flex items-center justify-between text-xs text-muted mb-1">
-          <span>{route.frequency}</span>
-        </div>
-        <div className="h-1.5 rounded-full bg-black/[.04] overflow-hidden">
-          <div
-            className="h-full rounded-full bg-ink/15"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                           */
-/* ------------------------------------------------------------------ */
-
-export default function RouteOverview({ routes, airports }: RouteOverviewProps) {
-  const [sortBy, setSortBy] = useState<"frequency" | "distance">("frequency");
-
-  const sorted = useMemo(() => {
-    const list = [...routes];
-    if (sortBy === "frequency") {
-      list.sort(
-        (a, b) => parseFrequency(b.frequency) - parseFrequency(a.frequency),
-      );
-    } else {
-      list.sort((a, b) => b.distance - a.distance);
-    }
-    return list;
-  }, [routes, sortBy]);
-
-  const maxFreq = Math.max(...routes.map((r) => parseFrequency(r.frequency)));
+export default function RouteOverview() {
+  const maxDist = Math.max(...ROUTES.map((r) => r.distance));
 
   return (
-    <div>
-      {/* Sort toggle */}
-      <div className="flex items-center gap-2 mb-6">
-        <span className="text-xs text-muted">Sort by</span>
-        <div className="flex rounded-lg border border-black/[.06] overflow-hidden">
-          <button
-            onClick={() => setSortBy("frequency")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              sortBy === "frequency"
-                ? "bg-ink text-white"
-                : "bg-bg text-muted hover:text-ink"
-            }`}
-          >
-            Frequency
-          </button>
-          <button
-            onClick={() => setSortBy("distance")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              sortBy === "distance"
-                ? "bg-ink text-white"
-                : "bg-bg text-muted hover:text-ink"
-            }`}
-          >
-            Distance
-          </button>
-        </div>
-      </div>
-
-      {/* Route list */}
-      <div className="rounded-xl border border-black/[.06] bg-card overflow-hidden">
-        <div className="px-4 pt-3 pb-1 border-b border-black/[.04]">
-          <div className="flex items-center gap-4 text-[11px] font-medium text-muted/60 uppercase tracking-wider">
-            <div className="w-6 text-center">#</div>
-            <div className="flex-1">Route</div>
-            <div className="w-32 hidden md:block">Frequency</div>
+    <div className="space-y-2">
+      {ROUTES.map((r, i) => (
+        <div
+          key={`${r.from}-${r.to}`}
+          className="flex items-center gap-4 px-5 py-3 rounded-xl border border-black/[.06] bg-white hover:bg-bg/50 transition-colors"
+        >
+          <span className="text-xs text-muted w-6 text-right">{i + 1}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-mono font-medium text-ink">{r.from}</span>
+              <span className="text-muted">→</span>
+              <span className="font-mono font-medium text-ink">{r.to}</span>
+            </div>
+            <div className="text-xs text-muted mt-0.5">
+              {r.fromCity} – {r.toCity}
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <div className="text-sm font-medium text-ink">{r.frequency}</div>
+            <div className="text-xs text-muted">{r.distance} km</div>
+          </div>
+          <div className="w-32 hidden sm:block flex-shrink-0">
+            <div className="h-1.5 rounded-full bg-ink/5 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-ink/15"
+                style={{ width: `${(r.distance / maxDist) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
-        {sorted.map((route, i) => (
-          <RouteCard
-            key={`${route.from}-${route.to}`}
-            route={route}
-            airports={airports}
-            rank={i + 1}
-            maxFreq={maxFreq}
-          />
-        ))}
-      </div>
-
-      {/* Summary */}
-      <div className="mt-4 text-xs text-muted">
-        {routes.length} routes tracked · IndiGo operates on all corridors
+      ))}
+      <div className="text-xs text-muted mt-4">
+        Top 15 busiest domestic routes by weekly frequency. Data from DGCA 2023.
       </div>
     </div>
   );

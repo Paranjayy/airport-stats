@@ -1,25 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { Airport } from "@/lib/database";
 import { formatPassengers, formatCargo } from "@/lib/map-utils";
-
-/* ------------------------------------------------------------------ */
-/*  Props                                                               */
-/* ------------------------------------------------------------------ */
-
-interface SummaryBarProps {
-  airports: Array<{
-    annual_passengers?: number;
-    annual_cargo_tonnes?: number;
-    annual_movements?: number;
-    domestic_passengers?: number;
-    international_passengers?: number;
-  }>;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Stat card                                                           */
-/* ------------------------------------------------------------------ */
 
 interface StatCardProps {
   label: string;
@@ -42,14 +25,11 @@ function StatCard({
     <button
       type="button"
       onClick={onClick}
-      className={`
-        text-left rounded-xl border px-5 py-4 transition-all duration-200
-        ${
-          active
-            ? "border-ink/15 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
-            : "border-black/[.06] bg-bg hover:bg-white hover:shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
-        }
-      `}
+      className={`text-left rounded-xl border px-5 py-4 transition-all duration-200 ${
+        active
+          ? "border-ink/15 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          : "border-black/[.06] bg-bg hover:bg-white hover:shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+      }`}
     >
       <div className="text-[13px] text-muted tracking-tight mb-1.5">
         {label}
@@ -72,19 +52,19 @@ function StatCard({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Summary bar                                                         */
-/* ------------------------------------------------------------------ */
-
-export default function SummaryBar({ airports }: SummaryBarProps) {
+export default function SummaryBar({ airports }: { airports: Airport[] }) {
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const totalPassengers = airports.reduce((s, a) => s + (a.annual_passengers ?? 0), 0);
-  const totalCargo = airports.reduce((s, a) => s + (a.annual_cargo_tonnes ?? 0), 0);
-  const totalMovements = airports.reduce((s, a) => s + (a.annual_movements ?? 0), 0);
+  const totalPassengers = airports.reduce((s, a) => s + a.annual_passengers, 0);
+  const totalCargo = airports.reduce((s, a) => s + a.annual_cargo_tonnes, 0);
+  const totalMovements = airports.reduce((s, a) => s + a.annual_movements, 0);
+  const totalDomestic = airports.reduce((s, a) => s + a.domestic_passengers, 0);
+  const totalInternational = airports.reduce(
+    (s, a) => s + a.international_passengers,
+    0,
+  );
 
   const stats = [
-
     {
       key: "airports",
       label: "Airports",
@@ -116,75 +96,63 @@ export default function SummaryBar({ airports }: SummaryBarProps) {
     {
       key: "states",
       label: "States & UTs",
-      value: "28",
+      value: String(new Set(airports.map((a) => a.state)).size),
       sublabel: "Covered across India",
       color: "var(--color-airport-defence)",
     },
   ];
 
+  const domesticPct =
+    totalPassengers > 0
+      ? Math.round((totalDomestic / totalPassengers) * 100)
+      : 85;
+  const internationalPct = 100 - domesticPct;
+
   return (
     <div>
-      {/* Stat cards grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        {stats.map((stat) => (
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {stats.map((s) => (
           <StatCard
-            key={stat.key}
-            label={stat.label}
-            value={stat.value}
-            sublabel={stat.sublabel}
-            color={stat.color}
-            active={hovered === stat.key}
-            onClick={() => setHovered(hovered === stat.key ? null : stat.key)}
+            key={s.key}
+            label={s.label}
+            value={s.value}
+            sublabel={s.sublabel}
+            color={s.color}
+            active={hovered === s.key}
+            onClick={() => setHovered(hovered === s.key ? null : s.key)}
           />
         ))}
       </div>
 
-      {/* Passenger split bar */}
+      {/* Domestic vs International split */}
       <div className="mt-8">
-        <div className="text-[13px] font-medium text-muted tracking-tight mb-3">
+        <div className="text-[13px] text-muted tracking-tight mb-3">
           Domestic vs. international split
         </div>
-        <div className="flex h-8 rounded-full overflow-hidden">
+        <div className="relative h-8 rounded-full overflow-hidden flex">
           <div
-            className="flex items-center justify-center text-sm font-semibold transition-opacity duration-200"
-            style={{
-              flexGrow: 85,
-              flexBasis: 0,
-              backgroundColor: "var(--color-airport-domestic)",
-              color: "#1D1D1F",
-              opacity: hovered && hovered !== "passengers" ? 0.35 : 1,
-            }}
+            className="bg-[var(--color-airport-domestic)] flex items-center justify-center text-white text-xs font-medium transition-all duration-500"
+            style={{ width: `${domesticPct}%` }}
           >
-            ~85%
+            ~{domesticPct}%
           </div>
           <div
-            className="flex items-center justify-center text-sm font-semibold transition-opacity duration-200"
-            style={{
-              flexGrow: 15,
-              flexBasis: 0,
-              backgroundColor: "var(--color-airport-international)",
-              color: "#1D1D1F",
-              opacity: hovered && hovered !== "passengers" ? 0.35 : 1,
-            }}
+            className="bg-[var(--color-airport-international)] flex items-center justify-center text-white text-xs font-medium transition-all duration-500"
+            style={{ width: `${internationalPct}%` }}
           >
-            ~15%
+            ~{internationalPct}%
           </div>
         </div>
-        <div className="mt-3 flex items-center justify-between text-xs text-muted">
-          <div className="flex items-center gap-1.5">
-            <span
-              className="inline-block w-2.5 h-2.5 rounded-[3px]"
-              style={{ backgroundColor: "var(--color-airport-domestic)" }}
-            />
-            Domestic (~85%)
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span
-              className="inline-block w-2.5 h-2.5 rounded-[3px]"
-              style={{ backgroundColor: "var(--color-airport-international)" }}
-            />
-            International (~15%)
-          </div>
+        <div className="flex justify-between mt-2 text-xs text-muted">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[var(--color-airport-domestic)]" />
+            Domestic (~{domesticPct}%)
+          </span>
+          <span className="flex items-center gap-1.5">
+            International (~{internationalPct}%)
+            <span className="w-2 h-2 rounded-full bg-[var(--color-airport-international)]" />
+          </span>
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
   "outputDirectory": ".next",
   "regions": ["bom1"],
   "headers": [
@@ -25,25 +25,8 @@
         {
           "key": "X-Frame-Options",
           "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/news-summaries.json",
-      "destination": "/api/news"
-    }
-  ],
-  "env": {
-    "NEXT_PUBLIC_VERCEL_ANALYTICS_ID": "@vercel-analytics-id"
-  }
+  ]
 }

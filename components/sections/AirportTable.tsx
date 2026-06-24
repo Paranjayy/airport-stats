@@ -1,245 +1,143 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import type { Airport } from "@/lib/database";
 import { formatPassengers, formatCargo } from "@/lib/map-utils";
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                               */
-/* ------------------------------------------------------------------ */
-
-interface AirportRow {
-  iata: string;
-  name: string;
-  city: string;
-  state: string;
-  type: string;
-  passengers: number;
-  cargo: number;
-  movements: number;
-  domestic: number;
-  international: number;
-}
-
-function toRow(a: any): AirportRow {
-  return {
-    iata: a.iata_code,
-    name: a.name,
-    city: a.city,
-    state: a.state || '',
-    type: a.airport_type || 'domestic',
-    passengers: a.annual_passengers || 0,
-    cargo: a.annual_cargo_tonnes || 0,
-    movements: a.annual_movements || 0,
-    domestic: a.domestic_passengers || 0,
-    international: a.international_passengers || 0,
-  };
-}
-
-interface AirportTableProps {
-  airports: AirportRow[];
-}
-
-type SortKey = "passengers" | "cargo" | "movements" | "name" | "iata";
+type SortKey =
+  | "annual_passengers"
+  | "annual_cargo_tonnes"
+  | "name"
+  | "iata_code";
 type SortDir = "asc" | "desc";
 
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                             */
-/* ------------------------------------------------------------------ */
-
 const TYPE_COLORS: Record<string, string> = {
-  international: "var(--color-airport-international)",
-  domestic: "var(--color-airport-domestic)",
-  civil: "var(--color-airport-neutral)",
+  international: "#007AFF",
+  domestic: "#34C759",
+  "joint-use": "#FF9500",
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  international: "International",
-  domestic: "Domestic",
-  civil: "Civil",
-};
-
-function BarChart({ value, max }: { value: number; max: number }) {
-  const pct = max > 0 ? (value / max) * 100 : 0;
-  return (
-    <div className="w-full h-1.5 rounded-full bg-black/[.04] overflow-hidden">
-      <div
-        className="h-full rounded-full bg-ink/15"
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                           */
-/* ------------------------------------------------------------------ */
-
-export default function AirportTable({ airports }: AirportTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>("passengers");
+export default function AirportTable({ airports }: { airports: Airport[] }) {
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("annual_passengers");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [filter, setFilter] = useState("");
 
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir(sortDir === "desc" ? "asc" : "desc");
-    } else {
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    const list = q
+      ? airports.filter(
+          (a) =>
+            a.name.toLowerCase().includes(q) ||
+            a.city.toLowerCase().includes(q) ||
+            a.iata_code.toLowerCase().includes(q) ||
+            a.state.toLowerCase().includes(q),
+        )
+      : airports;
+    return [...list].sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (typeof av === "string")
+        return sortDir === "asc"
+          ? av.localeCompare(bv as string)
+          : (bv as string).localeCompare(av);
+      return sortDir === "asc"
+        ? (av as number) - (bv as number)
+        : (bv as number) - (av as number);
+    });
+  }, [airports, search, sortKey, sortDir]);
+
+  const maxPax = Math.max(...airports.map((a) => a.annual_passengers));
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else {
       setSortKey(key);
       setSortDir("desc");
     }
   };
 
-  const sorted = useMemo(() => {
-    let list = [...airports];
-
-    // Filter
-    if (filter) {
-      const q = filter.toLowerCase();
-      list = list.filter(
-        (a) =>
-          a.name.toLowerCase().includes(q) ||
-          a.city.toLowerCase().includes(q) ||
-          a.iata.toLowerCase().includes(q) ||
-          a.state.toLowerCase().includes(q),
-      );
-    }
-
-    // Sort
-    list.sort((a, b) => {
-      let cmp = 0;
-      switch (sortKey) {
-        case "passengers":
-          cmp = a.passengers - b.passengers;
-          break;
-        case "cargo":
-          cmp = a.cargo - b.cargo;
-          break;
-        case "movements":
-          cmp = a.movements - b.movements;
-          break;
-        case "name":
-          cmp = a.name.localeCompare(b.name);
-          break;
-        case "iata":
-          cmp = a.iata.localeCompare(b.iata);
-          break;
-      }
-      return sortDir === "desc" ? -cmp : cmp;
-    });
-
-    return list;
-  }, [airports, sortKey, sortDir, filter]);
-
-  const maxPassengers = Math.max(...airports.map((a) => a.passengers));
-
-  const SortHeader = ({
-    label,
-    sortKeyName,
-    className,
-  }: {
-    label: string;
-    sortKeyName: SortKey;
-    className?: string;
-  }) => (
+  const SortHeader = ({ label, field }: { label: string; field: SortKey }) => (
     <th
-      className={`px-4 py-3 text-left text-[13px] font-medium text-muted tracking-tight cursor-pointer select-none hover:text-ink transition-colors ${className ?? ""}`}
-      onClick={() => handleSort(sortKeyName)}
+      className="text-left text-[11px] font-medium text-muted uppercase tracking-wider px-3 py-2 cursor-pointer select-none"
+      onClick={() => toggleSort(field)}
     >
-      <span className="inline-flex items-center gap-1">
-        {label}
-        {sortKey === sortKeyName && (
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-            className={`text-muted ${sortDir === "asc" ? "rotate-180" : ""}`}
-          >
-            <path
-              d="M5 2L8 6H2L5 2Z"
-              fill="currentColor"
-            />
-          </svg>
-        )}
-      </span>
+      {label} {sortKey === field ? (sortDir === "desc" ? "↓" : "↑") : ""}
     </th>
   );
 
   return (
-    <div>
+    <div className="rounded-xl border border-black/[.06] bg-white overflow-hidden">
       {/* Search */}
-      <div className="mb-6">
+      <div className="px-4 py-3 border-b border-black/[.06]">
         <input
           type="text"
           placeholder="Search airports by name, city, IATA code, or state…"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="w-full max-w-sm rounded-lg border border-black/[.06] bg-bg px-4 py-2.5 text-sm text-ink placeholder:text-muted/50 focus:outline-none focus:border-ink/15 focus:bg-white transition-colors"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full text-sm bg-transparent placeholder:text-muted/50 focus:outline-none"
         />
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto -mx-8 px-8 md:mx-0 md:px-0">
-        <table className="w-full min-w-[640px]">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-black/[.06]">
-              <SortHeader label="Airport" sortKeyName="name" className="w-[30%]" />
-              <SortHeader label="IATA" sortKeyName="iata" />
-              <SortHeader label="City" sortKeyName="name" />
-              <th className="px-4 py-3 text-left text-[13px] font-medium text-muted tracking-tight">
+              <SortHeader label="Airport" field="name" />
+              <th className="text-left text-[11px] font-medium text-muted uppercase tracking-wider px-3 py-2">
+                IATA
+              </th>
+              <th className="text-left text-[11px] font-medium text-muted uppercase tracking-wider px-3 py-2">
+                City
+              </th>
+              <th className="text-left text-[11px] font-medium text-muted uppercase tracking-wider px-3 py-2">
                 Type
               </th>
-              <SortHeader label="Passengers" sortKeyName="passengers" className="text-right" />
-              <SortHeader label="Cargo" sortKeyName="cargo" className="text-right" />
-              <th className="px-4 py-3 text-left text-[13px] font-medium text-muted tracking-tight">
+              <SortHeader label="Passengers" field="annual_passengers" />
+              <SortHeader label="Cargo" field="annual_cargo_tonnes" />
+              <th className="text-left text-[11px] font-medium text-muted uppercase tracking-wider px-3 py-2">
                 Volume
               </th>
             </tr>
           </thead>
           <tbody>
-            {sorted.map((airport) => (
+            {filtered.map((a) => (
               <tr
-                key={airport.iata}
-                className="border-b border-black/[.04] hover:bg-bg/50 transition-colors"
+                key={a.iata_code}
+                className="border-b border-black/[.04] last:border-0 hover:bg-bg/50 transition-colors"
               >
-                <td className="px-4 py-3">
-                  <div className="text-sm font-medium text-ink tracking-tight">
-                    {airport.name}
-                  </div>
+                <td className="px-3 py-3 font-medium text-ink">{a.name}</td>
+                <td className="px-3 py-3 font-mono text-[13px] text-muted">
+                  {a.iata_code}
                 </td>
-                <td className="px-4 py-3">
-                  <span className="text-sm font-mono font-medium text-ink">
-                    {airport.iata}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="text-sm text-muted">{airport.city}</span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+                <td className="px-3 py-3 text-muted">{a.city}</td>
+                <td className="px-3 py-3">
+                  <span className="flex items-center gap-1.5 text-xs text-muted capitalize">
                     <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      className="w-2 h-2 rounded-full"
                       style={{
                         backgroundColor:
-                          TYPE_COLORS[airport.type] || TYPE_COLORS.domestic,
+                          TYPE_COLORS[a.airport_type] || "#8E8E93",
                       }}
                     />
-                    {TYPE_LABELS[airport.type] || airport.type}
+                    {a.airport_type}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-sm font-medium text-ink">
-                    {formatPassengers(airport.passengers)}
-                  </span>
+                <td className="px-3 py-3 font-medium text-ink tabular-nums">
+                  {formatPassengers(a.annual_passengers)}
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-sm text-muted">
-                    {formatCargo(airport.cargo)}
-                  </span>
+                <td className="px-3 py-3 text-muted tabular-nums">
+                  {formatCargo(a.annual_cargo_tonnes)}
                 </td>
-                <td className="px-4 py-3 w-24">
-                  <BarChart
-                    value={airport.passengers}
-                    max={maxPassengers}
-                  />
+                <td className="px-3 py-3 w-32">
+                  <div className="h-1.5 rounded-full bg-ink/5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-ink/20"
+                      style={{
+                        width: `${(a.annual_passengers / maxPax) * 100}%`,
+                      }}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
@@ -247,17 +145,8 @@ export default function AirportTable({ airports }: AirportTableProps) {
         </table>
       </div>
 
-      {/* Result count */}
-      <div className="mt-4 text-xs text-muted">
-        Showing {sorted.length} of {airports.length} airports
-        {filter && (
-          <button
-            onClick={() => setFilter("")}
-            className="ml-2 underline decoration-muted/40 decoration-[0.5px] underline-offset-4 hover:text-ink transition-colors"
-          >
-            Clear search
-          </button>
-        )}
+      <div className="px-4 py-2 text-[11px] text-muted border-t border-black/[.06]">
+        Showing {filtered.length} of {airports.length} airports
       </div>
     </div>
   );
