@@ -8,13 +8,14 @@ import {
   Marker,
 } from "react-simple-maps";
 import { indiaProjection } from "@/lib/projections";
+import type { IndianAirport as Airport } from "@/lib/all-airports";
 import {
   AIRPORT_TYPE_COLOR,
   AIRPORT_DEFAULT_COLOR,
   airportDotRadius,
   type SetGenericTooltip,
 } from "@/lib/map-utils";
-import type { Airport } from "@/lib/database";
+
 
 const INDIA_GEO = "/india-states.json";
 
@@ -26,7 +27,7 @@ interface AirportTooltip {
 
 interface IndiaMapProps {
   airports: Airport[];
-  selectedAirportId: number | null;
+  selectedAirportId: string | null;
   onSelectAirport?: (airport: Airport) => void;
   setTooltip: SetGenericTooltip<AirportTooltip>;
 }
@@ -39,7 +40,7 @@ export default function IndiaMap({
 }: IndiaMapProps) {
   const sorted = useMemo(
     () =>
-      [...airports].sort((a, b) => a.annual_passengers - b.annual_passengers),
+      [...airports].sort((a, b) => a.passengers - b.passengers),
     [airports],
   );
 
@@ -94,19 +95,19 @@ export default function IndiaMap({
 
         {/* Airport markers */}
         {sorted.map((airport) => {
-          const pos = indiaProjection([airport.longitude, airport.latitude]);
+          const pos = indiaProjection([airport.lon, airport.lat]);
           if (!pos) return null;
           const [x, y] = pos;
-          const r = airportDotRadius(airport.annual_passengers);
+          const r = airportDotRadius(airport.passengers);
           const color =
             AIRPORT_TYPE_COLOR[
-              airport.airport_type as keyof typeof AIRPORT_TYPE_COLOR
+              airport.type as keyof typeof AIRPORT_TYPE_COLOR
             ] ?? AIRPORT_DEFAULT_COLOR;
-          const isSelected = selectedAirportId === airport.id;
-          const showLabel = airport.annual_passengers >= 20_000_000;
+          const isSelected = selectedAirportId === airport.iata;
+          const showLabel = airport.passengers >= 20_000_000;
 
           return (
-            <g key={airport.iata_code}>
+            <g key={airport.iata}>
               {/* Glow for selected */}
               {isSelected && (
                 <circle cx={x} cy={y} r={r + 6} fill={color} opacity={0.15} />
@@ -141,7 +142,7 @@ export default function IndiaMap({
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  {airport.iata_code}
+                  {airport.iata}
                 </text>
               )}
             </g>

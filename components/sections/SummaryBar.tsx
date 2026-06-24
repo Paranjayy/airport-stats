@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Airport } from "@/lib/database";
+import type { IndianAirport as Airport } from "@/lib/all-airports";
 import { formatPassengers, formatCargo } from "@/lib/map-utils";
 
 interface StatCardProps {
@@ -55,12 +55,12 @@ function StatCard({
 export default function SummaryBar({ airports }: { airports: Airport[] }) {
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const totalPassengers = airports.reduce((s, a) => s + a.annual_passengers, 0);
-  const totalCargo = airports.reduce((s, a) => s + a.annual_cargo_tonnes, 0);
-  const totalMovements = airports.reduce((s, a) => s + a.annual_movements, 0);
-  const totalDomestic = airports.reduce((s, a) => s + a.domestic_passengers, 0);
+  const totalPassengers = airports.reduce((s, a) => s + a.passengers, 0);
+  const totalCargo = airports.reduce((s, a) => s + a.cargo, 0);
+  const totalMovements = airports.reduce((s, a) => s + a.movements, 0);
+  const totalDomestic = airports.reduce((s, a) => s + a.passengers * 0.85, 0);
   const totalInternational = airports.reduce(
-    (s, a) => s + a.international_passengers,
+    (s, a) => s + a.passengers * 0.15,
     0,
   );
 

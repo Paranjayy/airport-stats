@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Airport } from "@/lib/database";
+import type { IndianAirport as Airport } from "@/lib/all-airports";
 import { formatPassengers } from "@/lib/map-utils";
 
 interface StateGroup {
@@ -22,7 +22,7 @@ function groupByState(airports: Airport[]): StateGroup[] {
     .map(([state, list]) => ({
       state,
       count: list.length,
-      totalPax: list.reduce((s, a) => s + a.annual_passengers, 0),
+      totalPax: list.reduce((s, a) => s + a.passengers, 0),
       airports: list,
     }))
     .sort((a, b) => b.totalPax - a.totalPax);
@@ -84,17 +84,17 @@ export default function StatsOverview({ airports }: { airports: Airport[] }) {
               <div className="border-t border-black/[.06] px-5 py-3 bg-bg/30">
                 {g.airports.map((a) => (
                   <div
-                    key={a.iata_code}
+                    key={a.iata}
                     className="flex items-center justify-between py-2 border-b border-black/[.04] last:border-0"
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-xs text-muted">
-                        {a.iata_code}
+                        {a.iata}
                       </span>
                       <span className="text-sm text-ink">{a.name}</span>
                     </div>
                     <span className="text-sm text-muted tabular-nums">
-                      {formatPassengers(a.annual_passengers)}
+                      {formatPassengers(a.passengers)}
                     </span>
                   </div>
                 ))}

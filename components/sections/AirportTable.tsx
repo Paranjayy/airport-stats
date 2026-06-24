@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { Airport } from "@/lib/database";
+import type { IndianAirport as Airport } from "@/lib/all-airports";
 import { formatPassengers, formatCargo } from "@/lib/map-utils";
 
 type SortKey =
-  | "annual_passengers"
-  | "annual_cargo_tonnes"
+  | "passengers"
+  | "cargo"
   | "name"
-  | "iata_code";
+  | "iata";
 type SortDir = "asc" | "desc";
 
 const TYPE_COLORS: Record<string, string> = {
@@ -19,7 +19,7 @@ const TYPE_COLORS: Record<string, string> = {
 
 export default function AirportTable({ airports }: { airports: Airport[] }) {
   const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("annual_passengers");
+  const [sortKey, setSortKey] = useState<SortKey>("passengers");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const filtered = useMemo(() => {
@@ -29,7 +29,7 @@ export default function AirportTable({ airports }: { airports: Airport[] }) {
           (a) =>
             a.name.toLowerCase().includes(q) ||
             a.city.toLowerCase().includes(q) ||
-            a.iata_code.toLowerCase().includes(q) ||
+            a.iata.toLowerCase().includes(q) ||
             a.state.toLowerCase().includes(q),
         )
       : airports;
@@ -46,7 +46,7 @@ export default function AirportTable({ airports }: { airports: Airport[] }) {
     });
   }, [airports, search, sortKey, sortDir]);
 
-  const maxPax = Math.max(...airports.map((a) => a.annual_passengers));
+  const maxPax = Math.max(...airports.map((a) => a.passengers));
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -93,8 +93,8 @@ export default function AirportTable({ airports }: { airports: Airport[] }) {
               <th className="text-left text-[11px] font-medium text-muted uppercase tracking-wider px-3 py-2">
                 Type
               </th>
-              <SortHeader label="Passengers" field="annual_passengers" />
-              <SortHeader label="Cargo" field="annual_cargo_tonnes" />
+              <SortHeader label="Passengers" field="passengers" />
+              <SortHeader label="Cargo" field="cargo" />
               <th className="text-left text-[11px] font-medium text-muted uppercase tracking-wider px-3 py-2">
                 Volume
               </th>
@@ -103,12 +103,12 @@ export default function AirportTable({ airports }: { airports: Airport[] }) {
           <tbody>
             {filtered.map((a) => (
               <tr
-                key={a.iata_code}
+                key={a.iata}
                 className="border-b border-black/[.04] last:border-0 hover:bg-bg/50 transition-colors"
               >
                 <td className="px-3 py-3 font-medium text-ink">{a.name}</td>
                 <td className="px-3 py-3 font-mono text-[13px] text-muted">
-                  {a.iata_code}
+                  {a.iata}
                 </td>
                 <td className="px-3 py-3 text-muted">{a.city}</td>
                 <td className="px-3 py-3">
@@ -117,24 +117,24 @@ export default function AirportTable({ airports }: { airports: Airport[] }) {
                       className="w-2 h-2 rounded-full"
                       style={{
                         backgroundColor:
-                          TYPE_COLORS[a.airport_type] || "#8E8E93",
+                          TYPE_COLORS[a.type] || "#8E8E93",
                       }}
                     />
-                    {a.airport_type}
+                    {a.type}
                   </span>
                 </td>
                 <td className="px-3 py-3 font-medium text-ink tabular-nums">
-                  {formatPassengers(a.annual_passengers)}
+                  {formatPassengers(a.passengers)}
                 </td>
                 <td className="px-3 py-3 text-muted tabular-nums">
-                  {formatCargo(a.annual_cargo_tonnes)}
+                  {formatCargo(a.cargo)}
                 </td>
                 <td className="px-3 py-3 w-32">
                   <div className="h-1.5 rounded-full bg-ink/5 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-ink/20"
                       style={{
-                        width: `${(a.annual_passengers / maxPax) * 100}%`,
+                        width: `${(a.passengers / maxPax) * 100}%`,
                       }}
                     />
                   </div>
