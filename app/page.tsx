@@ -13,6 +13,8 @@ import StatsOverview from "@/components/sections/StatsOverview";
 import AirlinesOverview from "@/components/sections/AirlinesOverview";
 import EconomicsOverview from "@/components/sections/EconomicsOverview";
 import PilotSchoolsOverview from "@/components/sections/PilotSchoolsOverview";
+import TrendsOverview from "@/components/sections/TrendsOverview";
+import WeatherOverview from "@/components/sections/WeatherOverview";
 import {
   ALL_INDIAN_AIRPORTS as AIRPORTS,
   AIRPORT_STATS,
@@ -293,6 +295,7 @@ export default function Page() {
         </div>
       </section>
 
+      {/* Section 08 — Historical Trends */}n      <section className="relative z-10 bg-bg border-t border-black/[.06]">n        <div className="max-w-5xl mx-auto px-8 pt-20 pb-24">n          <div className="text-[13px] font-medium text-muted tracking-tight mb-2">08 · Historical Trends</div>n          <h2 className="text-3xl md:text-4xl font-semibold text-ink tracking-tight leading-[1.1] mb-10">How Indian aviation grew</h2>n          <FadeInOnView>n            <TrendsOverview />n          </FadeInOnView>n        </div>n      </section>nn      {/* Section 09 — Weather */}n      <section className="relative z-10 bg-white border-t border-black/[.06]">n        <div className="max-w-5xl mx-auto px-8 pt-20 pb-24">n          <div className="text-[13px] font-medium text-muted tracking-tight mb-2">09 · Weather & Climate</div>n          <h2 className="text-3xl md:text-4xl font-semibold text-ink tracking-tight leading-[1.1] mb-10">Weather challenges across airports</h2>n          <FadeInOnView>n            <WeatherOverview />n          </FadeInOnView>n        </div>n      </section>nn
       {/* Section 07 — Pilot Training */}
       <section className="relative z-10 bg-white border-t border-black/[.06]">
         <div className="max-w-5xl mx-auto px-8 pt-20 pb-24">
