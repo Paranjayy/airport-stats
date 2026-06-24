@@ -8,6 +8,9 @@ import SummaryBar from "@/components/sections/SummaryBar";
 import AirportTable from "@/components/sections/AirportTable";
 import RouteOverview from "@/components/sections/RouteOverview";
 import StatsOverview from "@/components/sections/StatsOverview";
+import AirlinesOverview from "@/components/sections/AirlinesOverview";
+import EconomicsOverview from "@/components/sections/EconomicsOverview";
+import PilotSchoolsOverview from "@/components/sections/PilotSchoolsOverview";
 import {
   ALL_INDIAN_AIRPORTS as AIRPORTS,
   AIRPORT_STATS,
@@ -258,18 +261,72 @@ export default function Page() {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Section 05 — Airlines */}
       <section className="relative z-10 bg-white border-t border-black/[.06]">
-        <div className="max-w-5xl mx-auto px-8 py-10 flex flex-wrap items-center justify-between gap-4 text-xs text-muted">
-          <span>Airport Stats</span>
-          <div className="flex gap-6">
-            <Link href="/compare" className="hover:text-ink transition-colors">
-              Compare
-            </Link>
-            <span>Methodology</span>
-            <span>Contact</span>
+        <div className="max-w-5xl mx-auto px-8 pt-20 pb-24">
+          <div className="text-[13px] font-medium text-muted tracking-tight mb-2">
+            05 · Airlines
           </div>
-          <span>Data from Wikipedia, AAI, DGCA</span>
+          <h2 className="text-3xl md:text-4xl font-semibold text-ink tracking-tight leading-[1.1] mb-10">
+            Indian carriers
+          </h2>
+          <FadeInOnView>
+            <AirlinesOverview />
+          </FadeInOnView>
+        </div>
+      </section>
+
+      {/* Section 06 — Economics */}
+      <section className="relative z-10 bg-bg border-t border-black/[.06]">
+        <div className="max-w-5xl mx-auto px-8 pt-20 pb-24">
+          <div className="text-[13px] font-medium text-muted tracking-tight mb-2">
+            06 · Economics
+          </div>
+          <h2 className="text-3xl md:text-4xl font-semibold text-ink tracking-tight leading-[1.1] mb-10">
+            The business of flying
+          </h2>
+          <FadeInOnView>
+            <EconomicsOverview />
+          </FadeInOnView>
+        </div>
+      </section>
+
+      {/* Section 07 — Pilot Training */}
+      <section className="relative z-10 bg-white border-t border-black/[.06]">
+        <div className="max-w-5xl mx-auto px-8 pt-20 pb-24">
+          <div className="text-[13px] font-medium text-muted tracking-tight mb-2">
+            07 · Pilot Training
+          </div>
+          <h2 className="text-3xl md:text-4xl font-semibold text-ink tracking-tight leading-[1.1] mb-10">
+            How to become a pilot in India
+          </h2>
+          <FadeInOnView>
+            <PilotSchoolsOverview />
+          </FadeInOnView>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <section className="relative z-10 bg-bg border-t border-black/[.06]">
+        <div className="max-w-5xl mx-auto px-8 py-10">
+          <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-muted">
+            <span>Airport Stats</span>
+            <div className="flex gap-6">
+              <Link
+                href="/compare"
+                className="hover:text-ink transition-colors"
+              >
+                Compare
+              </Link>
+              <span>Methodology</span>
+              <span>Contact</span>
+            </div>
+            <span>Data from Wikipedia, AAI, DGCA, OpenSky Network</span>
+          </div>
+          <div className="mt-4 pt-4 border-t border-black/[.06] text-[11px] text-muted/60">
+            Built with Next.js, React, Tailwind CSS, react-simple-maps ·
+            Aviation data from AAI Annual Reports, DGCA, Wikipedia
+          </div>
         </div>
       </section>
 
