@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import KeyboardShortcuts from "@/components/ui/KeyboardShortcuts";
 import dynamic from "next/dynamic";
 import FadeInOnView from "@/components/ui/FadeInOnView";
 import SummaryBar from "@/components/sections/SummaryBar";
@@ -378,6 +380,8 @@ export default function Page() {
           </div>
         </div>
       )}
+      <ThemeToggle />
+      <KeyboardShortcuts />
     </>
   );
 }

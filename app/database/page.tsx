@@ -1,4 +1,5 @@
 "use client";
+import { downloadCSV } from "@/lib/export";
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
@@ -87,6 +88,34 @@ export default function DatabasePage() {
   };
 
   const hasActiveFilters = search || filterType !== "all" || filterState !== "all" || filterMinPax > 0;
+
+  const exportCSV = () => {
+    const exportData = filtered.map(a => ({
+      IATA: a.iata,
+      ICAO: a.icao,
+      Name: a.name,
+      City: a.city,
+      State: a.state,
+      Type: a.type,
+      Passengers: a.passengers,
+      Cargo: a.cargo,
+      Movements: a.movements,
+      Runways: a.runways,
+      "Runway Length (ft)": a.longestRunwayFt,
+      Elevation: a.elevationFt,
+      Terminals: a.terminals,
+      "Parking Bays": a.parkingBays,
+      "Daily Flights": a.avgDailyFlights,
+      "Intl %": a.internationalShare,
+      "Cargo %": a.cargoShare,
+      Operator: a.operator,
+      Opened: a.opened,
+      Airlines: a.airlines.join("; "),
+      "Hub For": a.hubFor.join("; "),
+      Notables: a.notables,
+    }));
+    downloadCSV(exportData, `airport-stats-${filtered.length}-airports.csv`);
+  };
 
   const toggleColumn = (col: string) => {
     setColumns(prev => prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]);
