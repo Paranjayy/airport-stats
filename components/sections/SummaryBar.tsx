@@ -1,174 +1,191 @@
 "use client";
 
 import { useState } from "react";
-import { ENTITIES } from "@/lib/placeholder-data";
-import {
-  STANCE_LABEL,
-  type DimensionLens,
-  type Entity,
-  type StanceType,
-} from "@/types";
+import { formatPassengers, formatCargo } from "@/lib/map-utils";
 
-interface Bucket {
-  key: StanceType;
-  label: string;
-  color: string;
-  textColor: string;
-}
-
-const BUCKETS: Bucket[] = [
-  {
-    key: "restrictive",
-    label: STANCE_LABEL.restrictive,
-    color: "var(--color-stance-restrictive)",
-    textColor: "#1D1D1F",
-  },
-  {
-    key: "concerning",
-    label: STANCE_LABEL.concerning,
-    color: "var(--color-stance-concerning)",
-    textColor: "#1D1D1F",
-  },
-  {
-    key: "review",
-    label: STANCE_LABEL.review,
-    color: "var(--color-stance-review)",
-    textColor: "#1D1D1F",
-  },
-  {
-    key: "none",
-    label: STANCE_LABEL.none,
-    color: "var(--color-stance-none)",
-    textColor: "#1D1D1F",
-  },
-  {
-    key: "favorable",
-    label: STANCE_LABEL.favorable,
-    color: "var(--color-stance-favorable)",
-    textColor: "#1D1D1F",
-  },
-];
+/* ------------------------------------------------------------------ */
+/*  Props                                                               */
+/* ------------------------------------------------------------------ */
 
 interface SummaryBarProps {
-  lens: DimensionLens;
+  airports: Array<{
+    annual_passengers?: number;
+    annual_cargo_tonnes?: number;
+    annual_movements?: number;
+    domestic_passengers?: number;
+    international_passengers?: number;
+  }>;
 }
 
-export default function SummaryBar({ lens }: SummaryBarProps) {
-  const [hovered, setHovered] = useState<StanceType | null>(null);
+/* ------------------------------------------------------------------ */
+/*  Stat card                                                           */
+/* ------------------------------------------------------------------ */
 
-  const states = ENTITIES.filter(
-    (e) => e.region === "na" && e.level === "state",
+interface StatCardProps {
+  label: string;
+  value: string;
+  sublabel?: string;
+  color?: string;
+  active?: boolean;
+  onClick?: () => void;
+}
+
+function StatCard({
+  label,
+  value,
+  sublabel,
+  color,
+  active,
+  onClick,
+}: StatCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        text-left rounded-xl border px-5 py-4 transition-all duration-200
+        ${
+          active
+            ? "border-ink/15 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+            : "border-black/[.06] bg-bg hover:bg-white hover:shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+        }
+      `}
+    >
+      <div className="text-[13px] text-muted tracking-tight mb-1.5">
+        {label}
+      </div>
+      <div className="text-2xl md:text-3xl font-semibold text-ink tracking-tight leading-none">
+        {value}
+      </div>
+      {sublabel && (
+        <div className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
+          {color && (
+            <span
+              className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+              style={{ backgroundColor: color }}
+            />
+          )}
+          {sublabel}
+        </div>
+      )}
+    </button>
   );
+}
 
-  const grouped: Record<StanceType, Entity[]> = {
-    restrictive: [],
-    concerning: [],
-    review: [],
-    favorable: [],
-    none: [],
-  };
-  for (const s of states) {
-    const stance = lens === "ai" ? s.stanceAI : s.stanceDatacenter;
-    grouped[stance].push(s);
-  }
+/* ------------------------------------------------------------------ */
+/*  Summary bar                                                         */
+/* ------------------------------------------------------------------ */
 
-  const restrictingCount =
-    grouped.restrictive.length + grouped.concerning.length;
-  const incentivesCount = grouped.favorable.length;
-  const totalStates = 50;
+export default function SummaryBar({ airports }: SummaryBarProps) {
+  const [hovered, setHovered] = useState<string | null>(null);
 
-  const activeBucket = hovered
-    ? (BUCKETS.find((b) => b.key === hovered) ?? null)
-    : null;
-  const activeStates = hovered ? grouped[hovered] : [];
+  const totalPassengers = airports.reduce((s, a) => s + (a.annual_passengers ?? 0), 0);
+  const totalCargo = airports.reduce((s, a) => s + (a.annual_cargo_tonnes ?? 0), 0);
+  const totalMovements = airports.reduce((s, a) => s + (a.annual_movements ?? 0), 0);
 
-  const restrictionsLabel =
-    lens === "ai"
-      ? "states advancing AI regulation"
-      : "states with active or advancing data-center restrictions";
-  const incentivesLabel =
-    lens === "ai"
-      ? "states with light-touch AI policy"
-      : "states offering data-center incentives";
+  const stats = [
+
+    {
+      key: "airports",
+      label: "Airports",
+      value: String(airports.length),
+      sublabel: "International & domestic",
+      color: "var(--color-airport-international)",
+    },
+    {
+      key: "passengers",
+      label: "Annual passengers",
+      value: formatPassengers(totalPassengers),
+      sublabel: "2023 total across network",
+      color: "var(--color-airport-domestic)",
+    },
+    {
+      key: "cargo",
+      label: "Cargo volume",
+      value: formatCargo(totalCargo),
+      sublabel: "Freight & mail tonnage",
+      color: "var(--color-airport-joint-use)",
+    },
+    {
+      key: "movements",
+      label: "Aircraft movements",
+      value: formatPassengers(totalMovements),
+      sublabel: "Takeoffs & landings",
+      color: "var(--color-airport-custom)",
+    },
+    {
+      key: "states",
+      label: "States & UTs",
+      value: "28",
+      sublabel: "Covered across India",
+      color: "var(--color-airport-defence)",
+    },
+  ];
 
   return (
-    <div className="relative">
-      {/* Legend row */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-8">
-        {BUCKETS.map((b) => (
-          <div key={b.key} className="flex items-center gap-2">
-            <span
-              className="w-3 h-3 rounded-[4px] flex-shrink-0"
-              style={{ backgroundColor: b.color }}
-            />
-            <span className="text-sm font-medium text-ink tracking-tight">
-              {b.label}
-            </span>
-          </div>
+    <div>
+      {/* Stat cards grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {stats.map((stat) => (
+          <StatCard
+            key={stat.key}
+            label={stat.label}
+            value={stat.value}
+            sublabel={stat.sublabel}
+            color={stat.color}
+            active={hovered === stat.key}
+            onClick={() => setHovered(hovered === stat.key ? null : stat.key)}
+          />
         ))}
       </div>
 
-      {/* Stats */}
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 mb-4 text-sm sm:text-base">
-        <div className="text-muted leading-snug">
-          <span className="font-semibold text-ink">{restrictingCount}</span> of{" "}
-          {totalStates} {restrictionsLabel}
+      {/* Passenger split bar */}
+      <div className="mt-8">
+        <div className="text-[13px] font-medium text-muted tracking-tight mb-3">
+          Domestic vs. international split
         </div>
-        <div className="text-muted leading-snug sm:text-right">
-          <span className="font-semibold text-ink">{incentivesCount}</span>{" "}
-          {incentivesLabel}
-        </div>
-      </div>
-
-      {/* Segmented bar */}
-      <div
-        className="flex h-8 rounded-full overflow-hidden"
-        onMouseLeave={() => setHovered(null)}
-      >
-        {BUCKETS.map((bucket) => {
-          const count = grouped[bucket.key].length;
-          if (count === 0) return null;
-          const isDimmed = hovered !== null && hovered !== bucket.key;
-          return (
-            <div
-              key={bucket.key}
-              onMouseEnter={() => setHovered(bucket.key)}
-              className="flex items-center justify-center text-sm font-semibold cursor-default transition-opacity duration-200"
-              style={{
-                flexGrow: count,
-                flexBasis: 0,
-                backgroundColor: bucket.color,
-                color: bucket.textColor,
-                opacity: isDimmed ? 0.35 : 1,
-              }}
-            >
-              {count}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Below the bar — help text OR active bucket detail */}
-      <div className="mt-4 min-h-[3.5rem]">
-        {activeBucket ? (
-          <div>
-            <div
-              className="text-sm font-semibold tracking-tight mb-1"
-              style={{ color: activeBucket.color }}
-            >
-              {activeBucket.label} — {activeStates.length} states
-            </div>
-            <div className="text-xs text-muted leading-relaxed">
-              {activeStates.map((s) => s.name).join(", ")}
-            </div>
+        <div className="flex h-8 rounded-full overflow-hidden">
+          <div
+            className="flex items-center justify-center text-sm font-semibold transition-opacity duration-200"
+            style={{
+              flexGrow: 85,
+              flexBasis: 0,
+              backgroundColor: "var(--color-airport-domestic)",
+              color: "#1D1D1F",
+              opacity: hovered && hovered !== "passengers" ? 0.35 : 1,
+            }}
+          >
+            ~85%
           </div>
-        ) : (
-          <p className="text-xs text-muted">
-            <span className="hidden sm:inline">Hover over</span>
-            <span className="sm:hidden">Tap</span> a segment to see which states
-            fall into each category.
-          </p>
-        )}
+          <div
+            className="flex items-center justify-center text-sm font-semibold transition-opacity duration-200"
+            style={{
+              flexGrow: 15,
+              flexBasis: 0,
+              backgroundColor: "var(--color-airport-international)",
+              color: "#1D1D1F",
+              opacity: hovered && hovered !== "passengers" ? 0.35 : 1,
+            }}
+          >
+            ~15%
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between text-xs text-muted">
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-[3px]"
+              style={{ backgroundColor: "var(--color-airport-domestic)" }}
+            />
+            Domestic (~85%)
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-[3px]"
+              style={{ backgroundColor: "var(--color-airport-international)" }}
+            />
+            International (~15%)
+          </div>
+        </div>
       </div>
     </div>
   );
