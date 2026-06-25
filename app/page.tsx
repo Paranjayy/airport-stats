@@ -16,10 +16,10 @@ import PilotSchoolsOverview from "@/components/sections/PilotSchoolsOverview";
 import TrendsOverview from "@/components/sections/TrendsOverview";
 import WeatherOverview from "@/components/sections/WeatherOverview";
 import {
-  DEDUPED_FINAL as AIRPORTS,
-  STATS_FINAL as AIRPORT_STATS,
+  FINAL_AIRPORTS as AIRPORTS,
+  AIRPORT_STATS_FINAL as AIRPORT_STATS,
 } from "@/lib/all-airports";
-import type { IndianAirport as Airport } from "@/lib/all-airports";
+import type { Airport } from "@/lib/all-airports";
 
 const IndiaMap = dynamic(() => import("@/components/map/IndiaMap"), {
   ssr: false,

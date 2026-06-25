@@ -8,7 +8,7 @@ import {
   Marker,
 } from "react-simple-maps";
 import { indiaProjection } from "@/lib/projections";
-import type { IndianAirport as Airport } from "@/lib/all-airports";
+import type { Airport } from "@/lib/all-airports";
 import {
   AIRPORT_TYPE_COLOR,
   AIRPORT_DEFAULT_COLOR,

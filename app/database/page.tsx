@@ -3,12 +3,12 @@ import { downloadCSV } from "@/lib/export";
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { DEDUPED_FINAL as AIRPORTS, STATS_FINAL as FULL_STATS } from "@/lib/all-airports";
+import { FINAL_AIRPORTS as AIRPORTS, AIRPORT_STATS_FINAL as FULL_STATS } from "@/lib/all-airports";
 import { INDIAN_AIRLINES, AIRPORT_ECONOMICS } from "@/lib/aviation-data";
-import type { IndianAirport } from "@/lib/all-airports";
+import type { Airport } from "@/lib/all-airports";
 
 type ViewMode = "table" | "grid" | "compact";
-type SortKey = keyof IndianAirport;
+type SortKey = keyof Airport;
 type SortDir = "asc" | "desc";
 
 const TYPE_COLORS: Record<string, string> = {
@@ -35,7 +35,7 @@ export default function DatabasePage() {
   const [filterType, setFilterType] = useState<string>("all");
   const [filterState, setFilterState] = useState<string>("all");
   const [filterMinPax, setFilterMinPax] = useState<number>(0);
-  const [selected, setSelected] = useState<IndianAirport | null>(null);
+  const [selected, setSelected] = useState<Airport | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [columns, setColumns] = useState<string[]>(["iata", "name", "city", "state", "type", "passengers", "cargo", "runways", "avgDailyFlights"]);
 
