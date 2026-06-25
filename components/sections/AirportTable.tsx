@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { IndianAirport as Airport } from "@/lib/all-airports";
+import type { Airport } from "@/lib/all-airports";
 import { formatPassengers, formatCargo } from "@/lib/map-utils";
 
 type SortKey =
