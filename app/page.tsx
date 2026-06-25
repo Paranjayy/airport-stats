@@ -16,8 +16,8 @@ import PilotSchoolsOverview from "@/components/sections/PilotSchoolsOverview";
 import TrendsOverview from "@/components/sections/TrendsOverview";
 import WeatherOverview from "@/components/sections/WeatherOverview";
 import {
-  ALL_INDIAN_AIRPORTS as AIRPORTS,
-  AIRPORT_STATS,
+  DEDUPED_FINAL as AIRPORTS,
+  STATS_FINAL as AIRPORT_STATS,
 } from "@/lib/all-airports";
 import type { IndianAirport as Airport } from "@/lib/all-airports";
 

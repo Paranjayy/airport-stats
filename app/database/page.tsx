@@ -3,7 +3,7 @@ import { downloadCSV } from "@/lib/export";
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { DEDUPLICATED_AIRPORTS as AIRPORTS, FULL_STATS } from "@/lib/all-airports";
+import { DEDUPED_FINAL as AIRPORTS, STATS_FINAL as FULL_STATS } from "@/lib/all-airports";
 import { INDIAN_AIRLINES, AIRPORT_ECONOMICS } from "@/lib/aviation-data";
 import type { IndianAirport } from "@/lib/all-airports";
 
