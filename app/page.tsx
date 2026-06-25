@@ -324,6 +324,7 @@ export default function Page() {
                 Compare
               </Link>
               <Link href="/database" className="hover:text-ink transition-colors font-medium">Database</Link>
+            <Link href="/global" className="hover:text-ink transition-colors">Global</Link>
               <span>Methodology</span>
               <span>Contact</span>
             </div>
